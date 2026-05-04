@@ -91,6 +91,11 @@ var responseHooks = []ResponseHook{
 
 var badgerDB *badger.DB
 
+const (
+	generatedCoverCacheControl = "public, max-age=86400"
+	defaultCoverCacheControl   = "public, max-age=60"
+)
+
 // ================== Utility Functions ==================
 func LoadConfig(path string) (*Config, error) {
 	f, err := os.Open(path)
@@ -373,7 +378,7 @@ func hookImage(resp *http.Response) error {
 		}
 		image = userImage
 		// 设置缓存响应头
-		resp.Header.Set("Cache-Control", "public, max-age=86400")
+		resp.Header.Set("Cache-Control", generatedCoverCacheControl)
 	} else {
 		// image = []byte{}
 		path := fmt.Sprintf("images/%s.png", lib.Name)
@@ -384,12 +389,13 @@ func hookImage(resp *http.Response) error {
 				return err
 			}
 			image = placeholder
+			resp.Header.Set("Cache-Control", defaultCoverCacheControl)
 		} else {
 			image, err = os.ReadFile(path)
 			if err != nil {
 				return err
 			}
-			resp.Header.Set("Cache-Control", "public, max-age=86400")
+			resp.Header.Set("Cache-Control", generatedCoverCacheControl)
 		}
 	}
 	contentType := http.DetectContentType(image)
