@@ -167,6 +167,9 @@ func doGetJSON(
 		return nil, err
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		return nil, fmt.Errorf("upstream returned HTTP %d", resp.StatusCode)
+	}
 	var data map[string]interface{}
 	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
 		return nil, err
@@ -176,6 +179,11 @@ func doGetJSON(
 
 // 优化 X-Emby 参数处理，优先 originalQuery，其次 header，最后 query
 func setXEmbyParams(query, originalQuery url.Values, headers http.Header, originalHeaders http.Header) {
+	for key, values := range originalQuery {
+		if strings.EqualFold(key, "api_key") {
+			query[key] = append([]string(nil), values...)
+		}
+	}
 	xEmbyKeys := []string{"X-Emby-Client", "X-Emby-Device-Name", "X-Emby-Device-Id", "X-Emby-Client-Version", "X-Emby-Token", "X-Emby-Language", "X-Emby-Authorization"}
 	for _, key := range xEmbyKeys {
 		val := originalQuery.Get(key)
@@ -313,6 +321,11 @@ func getItems(lib Library, orignalReq *http.Request, extQuery url.Values) map[st
 	query.Set("ImageTypeLimit", orignalQuery.Get("ImageTypeLimit"))
 	query.Set("Fields", orignalQuery.Get("Fields"))
 	query.Set("EnableTotalRecordCount", orignalQuery.Get("EnableTotalRecordCount"))
+	for _, key := range []string{"StartIndex", "Limit"} {
+		if values, ok := orignalQuery[key]; ok {
+			query[key] = append([]string(nil), values...)
+		}
+	}
 	if orignalQuery.Get("Filters") != "" {
 		query.Set("Filters", orignalQuery.Get("Filters"))
 	}
@@ -526,6 +539,9 @@ func hookDetails(resp *http.Response) error {
 		return nil
 	}
 	bodyText := getItems(lib, resp.Request, nil)
+	if bodyText == nil {
+		return fmt.Errorf("failed to fetch virtual library items")
+	}
 	bodyBytes, err := json.Marshal(bodyText)
 	if err != nil {
 		return err
