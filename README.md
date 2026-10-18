@@ -1,18 +1,18 @@
 # emby-virtual-lib
 
-A reverse proxy for Emby that allows you to customize and inject virtual libraries, modify API responses, and provide custom images for libraries. The project is written in Go for easy deployment and integration with existing Emby servers.
+一个用于 Emby 的反向代理，可以自定义并注入虚拟媒体库、修改 API 响应、为媒体库提供自定义图片。项目使用 Go 编写，便于部署和与现有 Emby 服务器集成。
 
-**English** · [简体中文](./README-zh.md)
+**简体中文** · [English](./README-en.md)
 
-## Features
+## 功能特性
 
-- Inject virtual libraries into Emby views
-- Support Docker deployment
-- Support YAML configuration
+- 在 Emby 视图中注入虚拟媒体库
+- 支持 Docker 部署
+- 支持 YAML 文件配置
 
-## Configuration
+## 配置说明
 
-Create a `config.yaml` file in the project root directory:
+在项目根目录下创建 `config.yaml` 文件：
 
 ```yaml
 emby_server: http://192.168.33.120:8096
@@ -25,70 +25,70 @@ hide:
   - boxsets
   - playlists
 library:
-  - name: All Movies
+  - name: 所有电影
     resource_id: 8960
     resource_type: collection
     image: ./images/movie.png
-  - name: All TV Shows
+  - name: 所有电视剧
     resource_id: 8961
     resource_type: collection
     image: ./images/tv.png
-  - name: Tag
+  - name: 标签
     resource_id: 10247
     resource_type: tag
-  - name: Genre
+  - name: 类型
     resource_id: 246
     resource_type: genre
-  - name: Studio
+  - name: 工作室
     resource_id: 10242
     resource_type: studio
-  - name: Actor
+  - name: 演员
     resource_id: 10232
     resource_type: person
 ```
 
-- `emby_server`: Your Emby server address
-- `emby_api_key`: (optional, default: empty) If set, the program will fetch image from emby server automatically.
-- `log_level`: (optional, default: info) Log level, options: `debug`, `info`, `warn`, `error`.
-- `hide`: (optional, default: empty) If set, the program will hide the libraries in Emby views.
-- `library`: List of virtual libraries to inject. Each library must include:
-  - `name`: Display name of the library (must be unique)
-  - `resource_id`: Resource id, the meaning of id is different according to resource_type
-  - `resource_type`: Resource type, optional values: `collection`, `tag`, `genre`, `studio`, `person`
-  - `image`: Path to the image file for this library (used for custom image service)
+- `emby_server`：你的 Emby 服务器地址
+- `emby_api_key`：（可选，默认空）如果希望自动生成媒体库封面，则需要设置 Emby API Key
+- `log_level`：（可选，默认 info）日志级别，可选值：`debug`、`info`、`warn`、`error`
+- `hide`：（可选，默认空）如果希望隐藏某些媒体库，则可以设置该选项
+- `library`：要注入的虚拟媒体库列表，每个库需包含：
+  - `name`：媒体库显示名称, 须唯一
+  - `resource_id`：资源 id，根据 resource_type 不同，id 的含义不同
+  - `resource_type`：资源类型，可选值为 `collection`、`tag`、`genre`、`studio`、`person`
+  - `image`：该库的图片文件路径（用于自定义图片服务）
 
-## Build & Run
+## 构建与运行
 
-### Local (Go)
+### 本地（Go 方式）
 
-1. Install Go 1.22 or higher
-2. Install dependencies:
+1. 安装 Go 1.22 或更高版本
+2. 安装依赖：
    ```bash
    go mod tidy
    ```
-3. Build:
+3. 编译：
    ```bash
    go build -o emby-virtual-lib main.go
    ```
-4. Run:
+4. 运行：
    ```bash
    ./emby-virtual-lib
    ```
 
 ### Docker
 
-1. Build the image:
+1. 构建镜像：
    ```bash
    docker build -t emby-virtual-lib .
    ```
-2. Run the container:
+2. 运行容器：
    ```bash
    docker run -d -p 8000:8000 --name emby-virtual-lib emby-virtual-lib
    ```
 
-## Docker Compose Deployment
+## Docker Compose 部署
 
-You can use Docker Compose to manage and deploy emby-virtual-lib more easily. Here is a sample `docker-compose.yml` file:
+你可以使用 Docker Compose 更方便地管理和部署 emby-virtual-lib 服务。以下是一个示例 `docker-compose.yml` 文件：
 
 ```yaml
 version: '3.8'
@@ -104,31 +104,31 @@ services:
     restart: unless-stopped
 ```
 
-### Usage Steps
+### 使用步骤
 
-1. Make sure `config.yaml` and the `images` directory are ready in the project root.
-2. Build and start the service:
+1. 确保 `config.yaml` 和 `images` 目录已在项目根目录下准备好。
+2. 构建并启动服务：
    ```bash
    docker compose up -d
    ```
-3. View logs:
+3. 查看日志：
    ```bash
    docker compose logs -f
    ```
-4. Stop the service:
+4. 停止服务：
    ```bash
    docker compose down
    ```
 
-### Notes
+### 说明
 
-- `volumes` mounts the local config file and images directory into the container for customization and persistence.
-- `restart: unless-stopped` ensures the service restarts automatically if it exits unexpectedly.
-- You can modify `docker-compose.yml` to customize ports or other parameters as needed.
+- `volumes` 用于挂载本地的配置文件和图片目录到容器内，便于自定义和持久化。
+- `restart: unless-stopped` 保证服务异常退出后自动重启。
+- 如需自定义端口或其他参数，可自行修改 `docker-compose.yml`。
 
-## Nginx Reverse Proxy Example
+## Nginx 反向代理示例
 
-Only the APIs that need to be modified are proxied to this program, other APIs are forwarded directly to the original Emby server:
+只将需要修改的 API 反代到本程序，其他 API 直接转发到原 Emby 服务器：
 
 ```nginx
 upstream emby_virtual_lib {
@@ -143,7 +143,7 @@ server {
     listen 80;
     server_name your.domain.com;
 
-        # only proxy /emby/Users/<id>/Views、/Items、/Items/Latest to emby-virtual-lib
+        # 只将 /emby/Users/<id>/Views、/Items、/Items/Latest 等需要 hook 的 API 反代到 emby-virtual-lib
         location ~ /Users/[^/]+/(Views|Items|Items/Latest) {
                 proxy_pass http://emby_virtual_lib;
                 proxy_redirect          off;
@@ -154,7 +154,7 @@ server {
                 proxy_set_header        X-Forwarded-Protocol    $scheme;
         }
 
-        # only proxy image to emby-virtual-lib
+        # 只将图片 hook 到 emby-virtual-lib
         location ~ /Items/[^/]+/Images/Primary {
                 proxy_pass http://emby_virtual_lib;
                 proxy_redirect          off;
@@ -177,20 +177,26 @@ server {
 }
 ```
 
-## FAQ
+## 常见问题
 
-**Q: How is the virtual library ID generated?**  
-A: The ID is the FNV-1a hash (string) of the library name.
+**Q: 虚拟媒体库的 ID 如何生成？**\
+A: ID 是媒体库名称的 FNV-1a 哈希值（字符串）。
 
-**Q: What image formats are supported?**  
-A: Any image format that Go's `os.ReadFile` can read and return as a byte stream is supported (e.g., PNG, JPG, etc.).
+**Q: 支持哪些图片格式？**\
+A: 只要 Go 的 `os.ReadFile` 能读取并作为字节流返回的图片格式都支持（如 PNG、JPG 等）。
 
-**Q: How to add or remove a library?**  
-A: Edit `config.yaml`, then restart the program or container.
+**Q: 如何添加或删除媒体库？**\
+A: 编辑 `config.yaml`，然后重启程序或容器。
 
-**Q: How to view logs?**  
-A: The program outputs logs to standard output. For Docker, use `docker logs emby-virtual-lib` to view logs.
+**Q: 如何查看日志？**\
+A: 程序日志输出到标准输出。Docker 方式可用 `docker logs emby-virtual-lib` 查看。
+
+## 推荐 Cirvel
+
+在用 Plex 的话，推荐了解 [Cirvel](https://cirvel.tidewren.com)，为 Plex 带来 STRM 直连播放、虚拟库、媒体信息补全、片头片尾优化、演职人员中文化、拼音排序与中文搜索，让播放与媒体库管理更顺手。本仓库的 Plex 插件在配置页中也提供了 Cirvel 入口。
+
+[![Cirvel 管理面板的仪表板，列出正在播放的会话、播放的版本与传输方式](https://cirvel.tidewren.com/shots/dashboard.webp)](https://cirvel.tidewren.com)
 
 ## License
 
-MIT 
+MIT
